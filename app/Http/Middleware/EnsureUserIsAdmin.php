@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Middleware;
 
 use App\Enums\UserRole;
@@ -11,14 +10,9 @@ class EnsureUserIsAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check()) {
-            return redirect()->guest(route('admin.login'));
+        if (!auth()->check() || auth()->user()->role !== UserRole::ADMIN) {
+            abort(404); // Privileged: hide admin existence
         }
-
-        if (auth()->user()->role !== UserRole::ADMIN) {
-            abort(403);
-        }
-
         return $next($request);
     }
 }

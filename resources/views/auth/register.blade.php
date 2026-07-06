@@ -1,59 +1,100 @@
 <x-guest-layout>
-    @if ($role === 'station_master')
-        <div class="mb-4 text-sm font-semibold text-green-700">
-            {{ __('Registering as a Station Master') }}
-        </div>
-    @endif
-
-    <form method="POST" action="{{ route('register') }}">
-        @csrf
-        <input type="hidden" name="role" value="{{ $role }}">
-
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+    <div class="auth-card">
+        
+        <div class="text-center mb-4">
+            <div class="logo-circle mb-3">
+                <i class="bi bi-person-plus text-white fs-1"></i>
+            </div>
+            <h2 class="fw-bold text-dark mb-0" style="font-size: 1.5rem;">Create Account</h2>
         </div>
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        {{-- Role Toggle --}}
+        <div class="row g-2 mb-4">
+            <div class="col-6">
+                <a href="{{ route('register', ['role' => 'passenger']) }}" 
+                   class="role-btn w-100 {{ $role === 'passenger' ? 'active-passenger' : 'border-secondary text-secondary' }}">
+                    <i class="bi bi-person"></i>
+                    <span>Passenger</span>
+                </a>
+            </div>
+            <div class="col-6">
+                <a href="{{ route('register', ['role' => 'station_master']) }}" 
+                   class="role-btn w-100 {{ $role === 'station_master' ? 'active-station' : 'border-secondary text-secondary' }}">
+                    <i class="bi bi-building"></i>
+                    <span>Station Master</span>
+                </a>
+            </div>
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+        <form method="POST" action="{{ route('register') }}">
+            @csrf
+            <input type="hidden" name="role" value="{{ $role ?? 'passenger' }}">
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
+            {{-- Name --}}
+            <div class="mb-3">
+                <x-input-label for="name" :value="__('Name')" class="d-none" />
+                <x-text-input id="name" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" placeholder="Full Name" />
+                <x-input-error :messages="$errors->get('name')" class="mt-2" />
+            </div>
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            {{-- Email --}}
+            <div class="mb-3">
+                <x-input-label for="email" :value="__('Email')" class="d-none" />
+                <x-text-input id="email" type="email" name="email" :value="old('email')" required autocomplete="username" placeholder="Email Address" />
+                <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            </div>
+
+            {{-- Phone --}}
+            <div class="mb-3">
+                <x-input-label for="phone" :value="__('Phone')" class="d-none" />
+                <x-text-input id="phone" type="tel" name="phone" :value="old('phone')" required placeholder="Phone Number (e.g., 017XXXXXXXX)" />
+                <x-input-error :messages="$errors->get('phone')" class="mt-2" />
+            </div>
+
+            {{-- Station (Station Master Only) --}}
+            @if($role === 'station_master')
+                <div class="mb-3">
+                    <select name="station_id" required
+                            class="form-select form-control-rail {{ $errors->has('station_id') ? 'is-invalid' : '' }}">
+                        <option value="">Select Assigned Station</option>
+                        @foreach(\App\Models\Station::orderBy('name')->get() as $station)
+                            <option value="{{ $station->id }}" {{ old('station_id') == $station->id ? 'selected' : '' }}>
+                                {{ $station->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <x-input-error :messages="$errors->get('station_id')" class="mt-2" />
+                </div>
+            @endif
+
+            {{-- Password --}}
+            <div class="mb-3">
+                <x-input-label for="password" :value="__('Password')" class="d-none" />
+                <x-text-input id="password" type="password" name="password" required autocomplete="new-password" placeholder="Password" />
+                <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            </div>
+
+            {{-- Confirm Password --}}
+            <div class="mb-4">
+                <x-input-label for="password_confirmation" :value="__('Confirm Password')" class="d-none" />
+                <x-text-input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password" placeholder="Confirm Password" />
+            </div>
+
+            <button type="submit" 
+                    class="btn w-100 py-3 fw-semibold fs-5 rounded-3 text-white
+                    {{ $role === 'station_master' ? 'btn-rail-green' : 'btn-rail-blue' }}">
+                {{ $role === 'station_master' ? 'Register as Station Master' : 'Create Passenger Account' }}
+            </button>
+        </form>
+
+        <div class="text-center mt-4 pt-3 border-top">
+            <p class="text-muted mb-0">
+                Already have an account? 
+                <a href="{{ route('login', ['role' => $role ?? 'passenger']) }}" class="text-decoration-none fw-bold text-primary">
+                    Log in
+                </a>
+            </p>
         </div>
 
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
-    </form>
+    </div>
 </x-guest-layout>

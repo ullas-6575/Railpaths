@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -12,11 +13,29 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
+        // Seed stations first (required for station_master registration)
+        $this->call(StationSeeder::class);
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        // Create admin user for testing
+        User::updateOrCreate(
+            ['email' => 'admin@trackrail.com'],
+            [
+                'name'     => 'Admin',
+                'email'    => 'admin@trackrail.com',
+                'password' => Hash::make('password'),
+                'role'     => 'admin',
+            ]
+        );
+
+        // Create a test passenger
+        User::updateOrCreate(
+            ['email' => 'passenger@trackrail.com'],
+            [
+                'name'     => 'Test Passenger',
+                'email'    => 'passenger@trackrail.com',
+                'password' => Hash::make('password'),
+                'role'     => 'passenger',
+            ]
+        );
     }
 }
