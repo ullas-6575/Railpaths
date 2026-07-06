@@ -2,8 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Enums\UserRole;
-use App\Providers\RouteServiceProvider;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,8 +15,16 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                $route = auth()->user()->role->redirectRoute();
-                return redirect()->route($route);
+                $role = auth()->user()->role;
+                
+                if ($role === 'admin') {
+                    return redirect()->route('admin.dashboard');
+                }
+                if ($role === 'station_master') {
+                    return redirect()->route('station-master.dashboard');
+                }
+                
+                return redirect()->route('dashboard');
             }
         }
 

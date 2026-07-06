@@ -47,7 +47,7 @@
             {{-- Phone --}}
             <div class="mb-3">
                 <x-input-label for="phone" :value="__('Phone')" class="d-none" />
-                <x-text-input id="phone" type="tel" name="phone" :value="old('phone')" required placeholder="Phone Number (e.g., 017XXXXXXXX)" />
+                <x-text-input id="phone" type="tel" name="phone" :value="old('phone')" placeholder="Phone Number (optional)" />
                 <x-input-error :messages="$errors->get('phone')" class="mt-2" />
             </div>
 

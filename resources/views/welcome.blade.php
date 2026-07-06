@@ -16,6 +16,7 @@
 </head>
 <body class="bg-light">
 
+    {{-- Navbar --}}
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-dark" href="{{ url('/') }}">
@@ -44,6 +45,7 @@
         </div>
     </nav>
 
+    {{-- Hero Section --}}
     <section class="hero-section bg-light">
         <div class="container text-center">
             <h1 class="display-4 fw-bold text-dark mb-3">
@@ -51,11 +53,20 @@
                 <span class="text-primary">Again</span>
             </h1>
             <p class="lead text-muted mx-auto" style="max-width: 600px;">
-                Real-time train tracking for  Railway..
+                Real-time train tracking for Bangladesh Railway. Check delays, book tickets, and get SMS alerts — completely free.
             </p>
+            <div class="d-flex justify-content-center gap-3 mt-4 flex-wrap">
+                <a href="{{ route('register') }}" class="btn btn-rail-blue btn-lg px-5 fw-semibold">
+                    Get Started as Passenger
+                </a>
+                <a href="{{ route('station-master.login') }}" class="btn btn-outline-dark btn-lg px-5 fw-semibold">
+                    Station Master Portal
+                </a>
+            </div>
         </div>
     </section>
 
+    {{-- Features --}}
     <section class="py-5 bg-white">
         <div class="container">
             <div class="row g-4">
@@ -82,7 +93,7 @@
                         <div class="feature-icon bg-warning bg-opacity-10 text-warning mb-3">
                             <i class="bi bi-phone-vibrate"></i>
                         </div>
-                        <h5 class="fw-bold">notification Alerts</h5>
+                        <h5 class="fw-bold">SMS Alerts</h5>
                         <p class="text-muted mb-0">Get instant SMS notifications when your train is delayed by more than 15 minutes.</p>
                     </div>
                 </div>

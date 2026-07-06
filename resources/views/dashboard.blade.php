@@ -9,7 +9,14 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    {{ __("You're logged in!") }}
+                    <h3 class="text-lg font-bold mb-2">Welcome, {{ auth()->user()->name }}!</h3>
+                    <p class="text-muted">You are logged in as a <strong>{{ auth()->user()->role->label() }}</strong>.</p>
+                    
+                    <div class="mt-4">
+                        <a href="{{ route('home') }}" class="btn btn-primary">
+                            <i class="bi bi-house me-2"></i>Go to Homepage
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

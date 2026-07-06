@@ -25,28 +25,24 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'role' => UserRole::class,
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
 
     public function isAdmin(): bool
     {
-        return $this->role === UserRole::ADMIN;
+        return $this->role === 'admin';
     }
 
     public function isStationMaster(): bool
     {
-        return $this->role === UserRole::STATION_MASTER;
+        return $this->role === 'station_master';
     }
 
     public function isPassenger(): bool
     {
-        return $this->role === UserRole::PASSENGER;
+        return $this->role === 'passenger';
     }
 
     public function station()

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -31,9 +32,17 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
-        // Role-based redirect after login
-        $route = auth()->user()->role->redirectRoute();
-        return redirect()->intended(route($route, absolute: false));
+        $role = auth()->user()->role;
+
+        if ($role === 'admin') {
+            return redirect()->intended(route('admin.dashboard'));
+        }
+        
+        if ($role === 'station_master') {
+            return redirect()->intended(route('station-master.dashboard'));
+        }
+
+        return redirect()->intended(route('dashboard'));
     }
 
     public function destroy(Request $request): RedirectResponse
