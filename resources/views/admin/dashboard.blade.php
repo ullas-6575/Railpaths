@@ -1,94 +1,124 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin Dashboard - Track Rail</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
-        :root { --rail-purple: #7c3aed; }
-        body { background-color: #f8f9fc; }
-        .navbar-admin { background-color: var(--rail-purple); }
-        .stat-card { border: none; border-radius: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
-        .stat-icon { width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
-    </style>
-</head>
-<body>
+@extends('layouts.admin')
 
-    <nav class="navbar navbar-dark navbar-admin shadow-sm">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="{{ route('admin.dashboard') }}">
-                <i class="bi bi-shield-lock-fill"></i> Track Rail Admin
-            </a>
-            <div class="d-flex align-items-center gap-3">
-                <span class="text-white-50 small">{{ auth()->user()->name }}</span>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="btn btn-sm btn-light">
-                        <i class="bi bi-box-arrow-right"></i> Log Out
-                    </button>
-                </form>
-            </div>
-        </div>
-    </nav>
+@section('title', 'Admin Dashboard - Track Rail')
 
-    <div class="container py-5">
-        <h2 class="fw-bold mb-1">Welcome back, {{ auth()->user()->name }}</h2>
-        <p class="text-muted mb-4">Here's what's happening across Track Rail.</p>
+@section('content')
+    <h2 class="fw-bold mb-1">Welcome back, {{ auth()->user()->name }}</h2>
+    <p class="text-muted mb-4">Here's what's happening across Track Rail.</p>
 
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="card stat-card h-100">
-                    <div class="card-body d-flex align-items-center gap-3">
-                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
-                            <i class="bi bi-people-fill"></i>
-                        </div>
-                        <div>
-                            <div class="text-muted small">Total Users</div>
-                            <div class="fs-3 fw-bold">{{ $totalUsers }}</div>
-                        </div>
+    <div class="row g-4">
+        {{-- Total Users --}}
+        <div class="col-md-4">
+            <div class="card stat-card h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-people-fill"></i>
                     </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card stat-card h-100">
-                    <div class="card-body d-flex align-items-center gap-3">
-                        <div class="stat-icon bg-success bg-opacity-10 text-success">
-                            <i class="bi bi-person-fill"></i>
-                        </div>
-                        <div>
-                            <div class="text-muted small">Passengers</div>
-                            <div class="fs-3 fw-bold">{{ $totalPassengers }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card stat-card h-100">
-                    <div class="card-body d-flex align-items-center gap-3">
-                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
-                            <i class="bi bi-building"></i>
-                        </div>
-                        <div>
-                            <div class="text-muted small">Station Masters</div>
-                            <div class="fs-3 fw-bold">{{ $totalStationMasters }}</div>
-                        </div>
+                    <div>
+                        <div class="text-muted small">Total Users</div>
+                        <div class="fs-3 fw-bold">{{ $totalUsers ?? 0 }}</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card stat-card mt-4">
-            <div class="card-body">
-                <h5 class="fw-bold mb-3">Next steps</h5>
-                <p class="text-muted mb-0">
-                    This is the admin dashboard shell. Add station management, train scheduling,
-                    and user administration tools here as the project grows.
-                </p>
+        {{-- Passengers --}}
+        <div class="col-md-4">
+            <div class="card stat-card h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Passengers</div>
+                        <div class="fs-3 fw-bold">{{ $totalPassengers ?? 0 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Station Masters --}}
+        <div class="col-md-4">
+            <div class="card stat-card h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Station Masters</div>
+                        <div class="fs-3 fw-bold">{{ $totalStationMasters ?? 0 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Total Trains --}}
+        <div class="col-md-4">
+            <div class="card stat-card h-100 border-start border-4 border-info">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-train-front"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Total Trains</div>
+                        <div class="fs-3 fw-bold">{{ $totalTrains ?? 0 }}</div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-0 pt-0">
+                    <a href="{{ route('admin.trains.index') }}" class="text-info text-decoration-none small fw-bold">
+                        Manage Trains →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- Total Routes --}}
+        <div class="col-md-4">
+            <div class="card stat-card h-100 border-start border-4 border-secondary">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-secondary bg-opacity-10 text-secondary">
+                        <i class="bi bi-signpost-split"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Total Routes</div>
+                        <div class="fs-3 fw-bold">{{ $totalRoutes ?? 0 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Pending SM Requests --}}
+        <div class="col-md-4">
+            <div class="card stat-card h-100 border-start border-4 border-danger">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Pending Requests</div>
+                        <div class="fs-3 fw-bold">{{ $pendingRequests ?? 0 }}</div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-0 pt-0">
+                    <a href="{{ route('admin.station-master-requests') }}" class="text-danger text-decoration-none small fw-bold">
+                        Review Requests →
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
-</body>
-</html>
+    <div class="card stat-card mt-4">
+        <div class="card-body">
+            <h5 class="fw-bold mb-3"><i class="bi bi-lightning-charge-fill text-purple me-2"></i>Quick Actions</h5>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ route('admin.trains.create') }}" class="btn btn-purple">
+                    <i class="bi bi-plus-lg me-1"></i> Add Train
+                </a>
+                <a href="{{ route('admin.station-master-requests') }}" class="btn btn-outline-purple">
+                    <i class="bi bi-person-check me-1"></i> Review SM Requests
+                </a>
+            </div>
+        </div>
+    </div>
+@endsection

@@ -98,3 +98,29 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+use App\Http\Controllers\Admin\TrainController;
+
+// Admin Routes (already protected by your middleware)
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    
+    // Existing routes...
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/station-master-requests', [StationMasterRequestController::class, 'index'])->name('station-master-requests');
+    Route::post('/station-master-requests/{id}/approve', [StationMasterRequestController::class, 'approve'])->name('station-master-requests.approve');
+    Route::post('/station-master-requests/{id}/reject', [StationMasterRequestController::class, 'reject'])->name('station-master-requests.reject');
+
+    // ✅ NEW: Train Management
+    Route::get('/trains', [TrainController::class, 'index'])->name('trains.index');
+    Route::get('/trains/create', [TrainController::class, 'create'])->name('trains.create');
+    Route::post('/trains', [TrainController::class, 'store'])->name('trains.store');
+    Route::get('/trains/{train}/edit', [TrainController::class, 'edit'])->name('trains.edit');
+    Route::put('/trains/{train}', [TrainController::class, 'update'])->name('trains.update');
+    Route::delete('/trains/{train}', [TrainController::class, 'destroy'])->name('trains.destroy');
+
+    // ✅ NEW: Route Builder
+    Route::get('/trains/{train}/routes', [TrainController::class, 'routes'])->name('trains.routes');
+    Route::get('/trains/{train}/route-builder', [TrainController::class, 'routeBuilder'])->name('trains.route-builder');
+    Route::post('/trains/{train}/routes', [TrainController::class, 'storeRoute'])->name('trains.routes.store');
+    Route::put('/routes/{route}/order', [TrainController::class, 'updateRouteOrder'])->name('routes.update-order');
+    Route::delete('/routes/{route}', [TrainController::class, 'destroyRoute'])->name('routes.destroy');
+});
