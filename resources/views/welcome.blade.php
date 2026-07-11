@@ -53,16 +53,9 @@
                 <span class="text-primary">Again</span>
             </h1>
             <p class="lead text-muted mx-auto" style="max-width: 600px;">
-                Real-time train tracking for Bangladesh Railway. Check delays, book tickets, and get SMS alerts — completely free.
+                Real-time train tracking for Bangladesh Railway. Check delays, book tickets, and get notifications — completely free.
             </p>
-            <div class="d-flex justify-content-center gap-3 mt-4 flex-wrap">
-                <a href="{{ route('register') }}" class="btn btn-rail-blue btn-lg px-5 fw-semibold">
-                    Get Started as Passenger
-                </a>
-                <a href="{{ route('station-master.login') }}" class="btn btn-outline-dark btn-lg px-5 fw-semibold">
-                    Station Master Portal
-                </a>
-            </div>
+            
         </div>
     </section>
 
@@ -93,7 +86,7 @@
                         <div class="feature-icon bg-warning bg-opacity-10 text-warning mb-3">
                             <i class="bi bi-phone-vibrate"></i>
                         </div>
-                        <h5 class="fw-bold">SMS Alerts</h5>
+                        <h5 class="fw-bold">notification Alerts</h5>
                         <p class="text-muted mb-0">Get instant SMS notifications when your train is delayed by more than 15 minutes.</p>
                     </div>
                 </div>

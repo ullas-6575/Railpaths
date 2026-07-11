@@ -55,9 +55,12 @@
                     <a href="{{ route('admin.trains.index') }}" class="list-group-item list-group-item-action border-0 {{ request()->routeIs('admin.trains.*') ? 'active' : '' }}">
                         <i class="bi bi-train-front me-2"></i> Trains & Routes
                     </a>
+                    <a href="{{ route('admin.schedule.index') }}" class="list-group-item list-group-item-action border-0 {{ request()->routeIs('admin.schedule.*') ? 'active' : '' }}">
+                        <i class="bi bi-calendar-week me-2"></i> Schedule
+                    </a>
                 </div>
             </div>
-            
+
             <!-- Main Content -->
             <div class="col-lg-10 col-md-9">
                 @if(session('success'))
@@ -66,7 +69,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
-                
+
                 @yield('content')
             </div>
         </div>
