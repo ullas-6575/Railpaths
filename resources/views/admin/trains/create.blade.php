@@ -41,6 +41,40 @@
                             @error('total_seats')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
+                        <hr class="my-4">
+                        <h6 class="mb-3 text-purple"><i class="bi bi-geo-alt"></i> Route Configuration</h6>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Start Station</label>
+                                <select name="start_station_id" class="form-select @error('start_station_id') is-invalid @enderror" required>
+                                    <option value="" disabled selected>Select Start Station</option>
+                                    @foreach($stations as $station)
+                                        <option value="{{ $station->id }}" {{ old('start_station_id') == $station->id ? 'selected' : '' }}>{{ $station->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('start_station_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">End Station</label>
+                                <select name="end_station_id" class="form-select @error('end_station_id') is-invalid @enderror" required>
+                                    <option value="" disabled selected>Select End Station</option>
+                                    @foreach($stations as $station)
+                                        <option value="{{ $station->id }}" {{ old('end_station_id') == $station->id ? 'selected' : '' }}>{{ $station->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('end_station_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Start Time</label>
+                            <input type="time" name="start_time" class="form-control @error('start_time') is-invalid @enderror" value="{{ old('start_time') }}" required>
+                            @error('start_time')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <div class="form-text">Each subsequent station stop will be automatically scheduled 30 minutes apart.</div>
+                        </div>
+
                         <div class="d-flex justify-content-between">
                             <a href="{{ route('admin.trains.index') }}" class="btn btn-outline-secondary">Cancel</a>
                             <button type="submit" class="btn btn-purple">Create Train</button>

@@ -44,6 +44,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'role' => \App\Enums\UserRole::class,
     ];
 
 
@@ -52,7 +53,7 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role?->value === 'admin';
     }
 
     /**
@@ -60,13 +61,13 @@ class User extends Authenticatable
      */
     public function isStationMaster(): bool
     {
-        return $this->role === 'station_master';
+        return $this->role?->value === 'station_master';
     }
 
  
     public function isPassenger(): bool
     {
-        return $this->role === 'passenger';
+        return $this->role?->value === 'passenger';
     }
     public function station(): BelongsTo
     {

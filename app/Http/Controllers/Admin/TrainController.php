@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Route;
 use App\Models\Station;
 use App\Models\Train;
+use App\Models\Schedule;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,8 @@ class TrainController extends Controller
 
     public function create(): View
     {
-        return view('admin.trains.create');
+        $stations = Station::all();
+        return view('admin.trains.create', compact('stations'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -31,12 +33,75 @@ class TrainController extends Controller
             'name' => 'required|string|max:255',
             'type' => 'required|in:express,superfast,passenger,local',
             'total_seats' => 'required|integer|min:1',
+            'start_station_id' => 'required|exists:stations,id',
+            'end_station_id' => 'required|exists:stations,id|different:start_station_id',
+            'start_time' => 'required|date_format:H:i',
         ]);
 
-        Train::create($validated);
+        DB::transaction(function () use ($validated) {
+            $train = Train::create([
+                'train_number' => $validated['train_number'],
+                'name' => $validated['name'],
+                'type' => $validated['type'],
+                'total_seats' => $validated['total_seats'],
+                'is_active' => true,
+            ]);
+
+            $masterSequence = ['RP', 'RJ', 'KH', 'BA', 'MY', 'DA', 'SYL', 'CM', 'FE', 'NK', 'CTG'];
+
+            $startStation = Station::find($validated['start_station_id']);
+            $endStation = Station::find($validated['end_station_id']);
+
+            $startIndex = array_search($startStation->code, $masterSequence);
+            $endIndex = array_search($endStation->code, $masterSequence);
+
+            $step = $startIndex < $endIndex ? 1 : -1;
+            $pathCodes = [];
+            for ($i = $startIndex; $startIndex < $endIndex ? $i <= $endIndex : $i >= $endIndex; $i += $step) {
+                $pathCodes[] = $masterSequence[$i];
+            }
+
+            $stationsInPath = Station::whereIn('code', $pathCodes)->get()->keyBy('code');
+
+            $route = $train->routes()->create([
+                'route_name' => $startStation->name . ' to ' . $endStation->name,
+                'departure_time' => $validated['start_time'],
+                'arrival_time' => \Carbon\Carbon::parse($validated['start_time'])->addMinutes((count($pathCodes) - 1) * 30)->format('H:i'),
+                'is_active' => true,
+            ]);
+
+            $currentTime = \Carbon\Carbon::parse($validated['start_time']);
+            $distance = 0;
+            $stopOrder = 1;
+
+            foreach ($pathCodes as $code) {
+                $station = $stationsInPath[$code];
+                
+                $route->stations()->attach($station->id, [
+                    'stop_order' => $stopOrder,
+                    'arrival_time' => $stopOrder === 1 ? null : $currentTime->format('H:i'),
+                    'departure_time' => $stopOrder === count($pathCodes) ? null : $currentTime->format('H:i'),
+                    'distance_from_source' => $distance,
+                ]);
+
+                // Create schedule for today automatically
+                Schedule::create([
+                    'train_id' => $train->id,
+                    'route_id' => $route->id,
+                    'station_id' => $station->id,
+                    'date' => now()->toDateString(),
+                    'arrival_time' => $stopOrder === 1 ? null : $currentTime->format('H:i'),
+                    'departure_time' => $stopOrder === count($pathCodes) ? null : $currentTime->format('H:i'),
+                ]);
+
+                $currentTime->addMinutes(30);
+                $distance += 50; 
+                $stopOrder++;
+            }
+        });
 
         return redirect()->route('admin.trains.index')
-            ->with('success', 'Train created successfully.');
+            ->with('success', 'Train, route, and schedule created successfully.');
     }
 
     public function edit(Train $train): View
