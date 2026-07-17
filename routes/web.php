@@ -11,6 +11,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\StationMasterController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\Admin\StationLogController;
 /*
 |--------------------------------------------------------------------------
 | PUBLIC ROUTES
@@ -121,6 +122,8 @@ Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function ()
         ->name('trains.routes.edit');
     Route::put('/trains/{train}/route-edit', [RouteController::class, 'update'])
         ->name('trains.routes.update');
+    Route::delete('/routes/{route}', [RouteController::class, 'destroy'])
+        ->name('routes.destroy');
 
     // Train Schedule Calendar
     Route::get('/schedule', [ScheduleController::class, 'index'])
@@ -150,4 +153,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/booking/seats/{train}', [BookingController::class, 'showSeats'])->name('booking.seats');
     Route::post('/booking/book', [BookingController::class, 'book'])->name('booking.book');
     Route::get('/booking/confirmation/{booking}', [BookingController::class, 'confirmation'])->name('booking.confirmation');
+});
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/station-logs', [StationLogController::class, 'index'])->name('station-logs.index');
+    Route::get('/station-logs/statistics', [StationLogController::class, 'statistics'])->name('station-logs.statistics');
 });

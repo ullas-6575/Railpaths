@@ -8,7 +8,7 @@
             <small class="text-muted">Train #{{ $train->train_number }}</small>
         </div>
         <div>
-            <a href="{{ route('admin.trains.route-builder', $train) }}" class="btn btn-purple">
+            <a href="{{ route('admin.trains.routes.create', $train) }}" class="btn btn-purple">
                 <i class="bi bi-plus-lg"></i> Build New Route
             </a>
             <a href="{{ route('admin.trains.index') }}" class="btn btn-outline-secondary ms-2">Back to Trains</a>

@@ -1,5 +1,4 @@
 <?php
-// database/seeders/StationSeeder.php
 namespace Database\Seeders;
 
 use App\Models\Station;

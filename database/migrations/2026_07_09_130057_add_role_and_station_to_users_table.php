@@ -7,7 +7,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('phone')->unique()->after('email');
+            $table->string('phone')->nullable()->unique()->after('email');
             $table->enum('role', ['passenger', 'station_master', 'admin'])->default('passenger')->after('phone');
             $table->foreignId('station_id')->nullable()->after('role')->constrained('stations')->onDelete('set null');
         });

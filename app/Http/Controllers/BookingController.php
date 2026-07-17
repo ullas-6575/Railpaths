@@ -28,19 +28,22 @@ class BookingController extends Controller
         // Find trains that have routes covering both stations
         $trains = Train::with(['schedules' => function ($query) use ($journeyDate) {
                 $query->whereDate('date', $journeyDate);
-            }, 'routes'])
-            ->whereHas('routes', function ($query) use ($sourceId) {
-                $query->where('station_id', $sourceId);
-            })
-            ->whereHas('routes', function ($query) use ($destinationId) {
-                $query->where('station_id', $destinationId);
-            })
+            }, 'routes.stations'])
+            ->whereHas('routes.stations', fn ($query) => $query->whereKey($sourceId))
+            ->whereHas('routes.stations', fn ($query) => $query->whereKey($destinationId))
             ->get()
-            ->filter(function ($train) use ($sourceId, $destinationId) {
-                // Ensure source comes before destination in route
-                $sourceOrder = $train->routes->where('station_id', $sourceId)->first()?->order;
-                $destOrder = $train->routes->where('station_id', $destinationId)->first()?->order;
-                return $sourceOrder !== null && $destOrder !== null && $sourceOrder < $destOrder;
+            ->map(function ($train) use ($sourceId, $destinationId) {
+                $stations = $train->routes->flatMap->stations->sortBy('pivot.stop_order')->values();
+                $sourceOrder = $stations->firstWhere('id', $sourceId)?->pivot->stop_order;
+                $destinationOrder = $stations->firstWhere('id', $destinationId)?->pivot->stop_order;
+                $train->setRelation('routes', $stations);
+                return [$train, $sourceOrder, $destinationOrder];
+            })
+            ->filter(function ($item) {
+                return $item[1] !== null && $item[2] !== null && $item[1] < $item[2];
+            })
+            ->map(function ($item) {
+                return $item[0];
             });
 
         $sourceStation = Station::find($sourceId);
@@ -100,15 +103,16 @@ class BookingController extends Controller
         try {
             $booking = Booking::create([
                 'user_id' => Auth::id(),
-                'train_id' => $request->train_id,
-                'schedule_id' => $request->schedule_id,
-                'source_id' => $request->source_id,
-                'destination_id' => $request->destination_id,
-                'journey_date' => Schedule::find($request->schedule_id)->date,
-                'total_fare' => $this->calculateFare($request->train_id, $request->source_id, $request->destination_id, count($request->seat_ids)),
+                'route_id' => Schedule::findOrFail($request->schedule_id)->route_id,
+                'source_station_id' => $request->source_id,
+                'dest_station_id' => $request->destination_id,
+                'travel_date' => Schedule::findOrFail($request->schedule_id)->date,
+                'class_type' => 'shovan',
+                'seat_count' => count($request->seat_ids),
                 'status' => 'confirmed',
-                'pnr' => $this->generatePNR(),
             ]);
+
+            $booking->seats()->sync($request->seat_ids);
 
             foreach ($request->seat_ids as $index => $seatId) {
                 $booking->passengers()->create([
@@ -141,7 +145,7 @@ class BookingController extends Controller
 
     public function confirmation(Booking $booking)
     {
-        $this->authorize('view', $booking);
+        abort_unless($booking->user_id === Auth::id(), 403);
         return view('booking.confirmation', compact('booking'));
     }
 }

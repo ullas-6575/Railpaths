@@ -3,119 +3,122 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Train;
+use App\Models\Route;
 use App\Models\Station;
+use App\Models\Train;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class RouteController extends Controller
 {
-    /**
-     * Show route builder (create new route).
-     */
     public function create(Train $train)
     {
         $stations = Station::orderBy('name')->get();
+
         return view('admin.trains.route-builder', compact('train', 'stations'));
     }
 
-    /**
-     * Store new route.
-     */
     public function store(Request $request, Train $train)
     {
         $validated = $request->validate([
+            'route_name' => 'required|string|max:255',
+            'departure_time' => 'required|date_format:H:i',
+            'arrival_time' => 'required|date_format:H:i',
             'stations' => 'required|array|min:2',
-            'stations.*.id' => 'required|exists:stations,id',
-            'stations.*.arrival_time' => 'required|date_format:H:i',
-            'stations.*.departure_time' => 'required|date_format:H:i',
-            'stations.*.distance_from_source' => 'required|numeric|min:0',
+            'stations.*.id' => 'nullable|exists:stations,id',
+            'stations.*.station_id' => 'nullable|exists:stations,id',
+            'stations.*.arrival_time' => 'nullable|date_format:H:i',
+            'stations.*.departure_time' => 'nullable|date_format:H:i',
+            'stations.*.distance_from_source' => 'nullable|numeric|min:0',
+            'stations.*.distance' => 'nullable|numeric|min:0',
         ]);
 
-        DB::transaction(function () use ($train, $validated) {
-            foreach ($validated['stations'] as $index => $stationData) {
-                $train->routes()->attach($stationData['id'], [
+        DB::transaction(function () use ($validated, $train) {
+            $route = $train->routes()->create([
+                'route_name' => $validated['route_name'],
+                'departure_time' => $validated['departure_time'],
+                'arrival_time' => $validated['arrival_time'],
+                'is_active' => true,
+            ]);
+
+            $stations = [];
+            foreach ($validated['stations'] as $index => $station) {
+                $stationId = $station['id'] ?? $station['station_id'];
+                $stations[$stationId] = [
                     'stop_order' => $index + 1,
-                    'arrival_time' => $stationData['arrival_time'],
-                    'departure_time' => $stationData['departure_time'],
-                    'distance_from_source' => $stationData['distance_from_source'],
-                ]);
+                    'arrival_time' => $station['arrival_time'] ?? null,
+                    'departure_time' => $station['departure_time'] ?? null,
+                    'distance_from_source' => $station['distance_from_source'] ?? $station['distance'] ?? 0,
+                ];
             }
+
+            $route->stations()->attach($stations);
         });
 
-        return redirect()
-            ->route('admin.trains.routes.show', $train)
+        return redirect()->route('admin.trains.routes', $train)
             ->with('success', 'Route created successfully.');
     }
 
-    /**
-     * Show route details.
-     */
     public function show(Train $train)
     {
-        // Load routes and sort collection by pivot stop_order after loading
-        $train->load('routes');
-        $train->setRelation('routes', $train->routes->sortBy('pivot.stop_order')->values());
+        $train->load('routes.stations');
 
-        return view('admin.trains.route-show', compact('train'));
+        return view('admin.trains.routes', compact('train'));
     }
 
-    /**
-     * Show route edit form with drag-drop reordering.
-     */
     public function edit(Train $train)
     {
-        // Load routes and sort collection by pivot stop_order after loading
-        $train->load('routes');
-        $train->setRelation('routes', $train->routes->sortBy('pivot.stop_order')->values());
-
-        $routeStations = $train->routes->map(function ($station) {
-            return [
-                'id' => $station->id,
-                'name' => $station->name,
-                'code' => $station->code,
-                'arrival_time' => $station->pivot->arrival_time,
-                'departure_time' => $station->pivot->departure_time,
-                'distance_from_source' => $station->pivot->distance_from_source,
-                'stop_order' => $station->pivot->stop_order,
-            ];
-        });
-
-        $availableStations = Station::whereNotIn('id', $train->routes->pluck('id'))
-            ->orderBy('name')
-            ->get(['id', 'name', 'code']);
+        $train->load('routes.stations');
+        $route = $train->routes->first();
+        $routeStations = $route?->stations->map(fn ($station) => [
+            'id' => $station->id,
+            'name' => $station->name,
+            'code' => $station->code,
+            'arrival_time' => $station->pivot->arrival_time,
+            'departure_time' => $station->pivot->departure_time,
+            'distance_from_source' => $station->pivot->distance_from_source,
+            'stop_order' => $station->pivot->stop_order,
+        ])->values() ?? collect();
+        $usedIds = $route?->stations->pluck('id') ?? collect();
+        $availableStations = Station::whereNotIn('id', $usedIds)->orderBy('name')->get();
 
         return view('admin.trains.route-edit', compact('train', 'routeStations', 'availableStations'));
     }
 
-    /**
-     * Update the route with reordered stations.
-     */
     public function update(Request $request, Train $train)
     {
         $validated = $request->validate([
             'stations' => 'required|array|min:2',
             'stations.*.id' => 'required|exists:stations,id',
-            'stations.*.arrival_time' => 'required|date_format:H:i',
-            'stations.*.departure_time' => 'required|date_format:H:i',
-            'stations.*.distance_from_source' => 'required|numeric|min:0',
+            'stations.*.arrival_time' => 'nullable|date_format:H:i',
+            'stations.*.departure_time' => 'nullable|date_format:H:i',
+            'stations.*.distance_from_source' => 'nullable|numeric|min:0',
         ]);
 
-        DB::transaction(function () use ($train, $validated) {
-            $train->routes()->detach();
-
-            foreach ($validated['stations'] as $index => $stationData) {
-                $train->routes()->attach($stationData['id'], [
+        $route = $train->routes()->firstOrFail();
+        DB::transaction(function () use ($validated, $route) {
+            $stations = [];
+            foreach ($validated['stations'] as $index => $station) {
+                $stations[$station['id']] = [
                     'stop_order' => $index + 1,
-                    'arrival_time' => $stationData['arrival_time'],
-                    'departure_time' => $stationData['departure_time'],
-                    'distance_from_source' => $stationData['distance_from_source'],
-                ]);
+                    'arrival_time' => $station['arrival_time'] ?? null,
+                    'departure_time' => $station['departure_time'] ?? null,
+                    'distance_from_source' => $station['distance_from_source'] ?? 0,
+                ];
             }
+            $route->stations()->sync($stations);
         });
 
-        return redirect()
-            ->route('admin.trains.routes.show', $train)
-            ->with('success', 'Route updated successfully with new station order.');
+        return redirect()->route('admin.trains.routes', $train)
+            ->with('success', 'Route updated successfully.');
+    }
+
+    public function destroy(Route $route)
+    {
+        $train = $route->train;
+        $route->delete();
+
+        return redirect()->route('admin.trains.routes', $train)
+            ->with('success', 'Route deleted successfully.');
     }
 }

@@ -22,7 +22,7 @@
                                     <div class="flex-1">
                                         <div class="flex items-center space-x-4">
                                             <h3 class="text-xl font-bold text-gray-900">{{ $train->name }}</h3>
-                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{{ $train->number }}</span>
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{{ $train->train_number }}</span>
                                         </div>
                                         
                                         <div class="mt-4 flex items-center space-x-8">

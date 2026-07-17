@@ -1,6 +1,4 @@
 <?php
-// app/Http/Controllers/StationMasterController.php
-
 namespace App\Http\Controllers;
 
 use App\Models\Station;
@@ -20,7 +18,10 @@ class StationMasterController extends Controller
     public function dashboard()
     {
         $stationMaster = Auth::user();
-        $station = $stationMaster->assignedStation; // Adjust based on your User model relation
+        $station = $stationMaster->assignedStation;
+        if (! $station) {
+            return view('station-master.dashboard', ['station' => null, 'incomingTrains' => collect()]);
+        }
         
         $today = now()->toDateString();
         

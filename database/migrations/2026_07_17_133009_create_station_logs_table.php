@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('station_logs')) {
+            return;
+        }
+
         Schema::create('station_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('station_master_id')->constrained('users');
