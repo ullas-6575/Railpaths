@@ -10,7 +10,7 @@ use App\Http\Controllers\Admin\ScheduleController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\StationMasterController;
 use App\Http\Controllers\ProfileController;
-
+use App\Http\Controllers\BookingController;
 /*
 |--------------------------------------------------------------------------
 | PUBLIC ROUTES
@@ -143,4 +143,11 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:station_master'])->prefix('station-master')->group(function () {
     Route::get('/dashboard', [StationMasterController::class, 'dashboard'])->name('station-master.dashboard');
     Route::post('/log-train/{schedule}', [StationMasterController::class, 'logTrain'])->name('station-master.log-train');
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('/booking/search', [BookingController::class, 'search'])->name('booking.search');
+    Route::get('/booking/seats/{train}', [BookingController::class, 'showSeats'])->name('booking.seats');
+    Route::post('/booking/book', [BookingController::class, 'book'])->name('booking.book');
+    Route::get('/booking/confirmation/{booking}', [BookingController::class, 'confirmation'])->name('booking.confirmation');
 });
