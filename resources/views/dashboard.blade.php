@@ -15,7 +15,7 @@
                 <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ session('success') }}</div>
             @endif
 
-            <section class="overflow-hidden rounded-2xl bg-indigo-700 shadow-xl">
+            <section class="overflow-hidden rounded-2xl shadow-xl" style="background: linear-gradient(120deg, #312e81 0%, #4338ca 55%, #6366f1 100%);">
                 <div class="grid gap-8 px-6 py-8 text-white md:grid-cols-[1fr_1.4fr] md:px-10">
                     <div>
                         <p class="text-sm font-semibold uppercase tracking-widest text-indigo-200">Plan your next journey</p>
@@ -48,7 +48,7 @@
                             <label for="journey_date" class="block text-sm font-medium">Journey date</label>
                             <input type="date" name="journey_date" id="journey_date" min="{{ now()->toDateString() }}" required class="mt-1 block w-full rounded-lg border-gray-300">
                         </div>
-                        <button class="mt-5 w-full rounded-lg bg-indigo-600 px-4 py-3 font-semibold text-white hover:bg-indigo-500">Search trains</button>
+                        <button class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-3 font-semibold text-white shadow-sm hover:bg-indigo-500"><i class="bi bi-search"></i>Search trains</button>
                     </form>
                 </div>
             </section>

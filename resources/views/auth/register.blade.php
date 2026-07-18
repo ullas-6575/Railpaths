@@ -54,15 +54,19 @@
             {{-- Station (Station Master Only) --}}
             @if($role === 'station_master')
                 <div class="mb-3">
-                    <select name="station_id" required
+                    <label for="station_id" class="form-label fw-semibold text-success">Assigned station</label>
+                    <select name="station_id" id="station_id" required
                             class="form-select form-control-rail {{ $errors->has('station_id') ? 'is-invalid' : '' }}">
                         <option value="">Select Assigned Station</option>
-                        @foreach(\App\Models\Station::orderBy('name')->get() as $station)
+                        @foreach($stations as $station)
                             <option value="{{ $station->id }}" {{ old('station_id') == $station->id ? 'selected' : '' }}>
-                                {{ $station->name }}
+                                {{ $station->railOrder() }}. {{ $station->name }} ({{ $station->code }})
                             </option>
                         @endforeach
                     </select>
+                    @if($stations->isEmpty())
+                        <div class="alert alert-warning mt-2 mb-0 py-2 small"><i class="bi bi-exclamation-triangle me-1"></i>No stations are configured yet. Please contact the administrator.</div>
+                    @endif
                     <x-input-error :messages="$errors->get('station_id')" class="mt-2" />
                 </div>
             @endif

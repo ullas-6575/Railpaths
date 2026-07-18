@@ -10,7 +10,7 @@ class EnsureUserIsStationMaster
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || auth()->user()->role !== 'station_master') {
+        if (!auth()->check() || !auth()->user()->isStationMaster()) {
             abort(404);
         }
         return $next($request);

@@ -53,16 +53,21 @@ class StationMasterController extends Controller
             'remarks' => 'nullable|string|max:500',
         ]);
 
-        $schedule = Schedule::findOrFail($scheduleId);
+        $schedule = Schedule::with('train')->findOrFail($scheduleId);
         $stationMaster = Auth::user();
+        abort_unless((int) $schedule->station_id === (int) $stationMaster->station_id, 403);
 
         // Calculate delay
         $delayMinutes = 0;
         $status = 'on_time';
         
-        if ($request->actual_arrival) {
-            $scheduled = Carbon::parse($schedule->arrival_time);
-            $actual = Carbon::parse($request->actual_arrival);
+        $usingArrival = filled($request->actual_arrival) && filled($schedule->arrival_time);
+        $actualTime = $usingArrival ? $request->actual_arrival : $request->actual_departure;
+        $scheduledTime = $usingArrival ? $schedule->arrival_time : $schedule->departure_time;
+
+        if ($actualTime && $scheduledTime) {
+            $scheduled = Carbon::parse($scheduledTime);
+            $actual = Carbon::parse($actualTime);
             $delayMinutes = max(0, $scheduled->diffInMinutes($actual, false));
 
             if ($delayMinutes > 0) {

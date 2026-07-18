@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\StationMasterRequest;
+use App\Models\Station;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,11 @@ class RegisteredUserController extends Controller
             $role = 'passenger';
         }
 
-        return view('auth.register', ['role' => $role]);
+        $stations = Station::all()
+            ->sortBy(fn (Station $station) => $station->railOrder())
+            ->values();
+
+        return view('auth.register', compact('role', 'stations'));
     }
 
     public function store(Request $request): RedirectResponse
