@@ -1,9 +1,14 @@
 <x-app-layout>
-    <x-slot name="header"><h2 class="font-semibold text-xl text-gray-800">Booking confirmed</h2></x-slot>
-    <div class="py-12"><div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white shadow-sm rounded-lg p-6">
-            <p class="text-lg">Your booking reference is <strong>{{ $booking->id }}</strong>.</p>
-            <a class="mt-4 inline-block text-indigo-600" href="{{ route('dashboard') }}">Return to dashboard</a>
-        </div>
+    <x-slot name="header">
+        <div class="flex items-center gap-3"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700"><i class="bi bi-check-lg text-xl"></i></span><div><p class="text-xs font-bold uppercase tracking-widest text-emerald-600">Step 3 of 3</p><h2 class="mt-1 text-2xl font-bold text-slate-900">Booking confirmed</h2></div></div>
+    </x-slot>
+    <div class="min-h-screen bg-slate-50 py-10"><div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <div class="mb-6 text-center"><div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-3xl text-emerald-600"><i class="bi bi-check2"></i></div><h1 class="mt-4 text-2xl font-bold text-slate-900">You’re all set!</h1><p class="mt-2 text-sm text-slate-500">Your seat has been reserved successfully.</p></div>
+        <div class="overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-slate-200"><div class="p-6 sm:p-8">
+            <div class="flex flex-wrap items-start justify-between gap-4"><div><p class="text-xs font-bold uppercase tracking-widest text-indigo-600">Track Rail e-ticket</p><h3 class="mt-2 text-2xl font-bold text-slate-900">{{ $booking->route?->train?->name ?? 'Train booking' }}</h3><p class="mt-1 text-sm text-slate-500">Booking reference #{{ $booking->id }}</p></div><span class="rounded-full bg-emerald-100 px-4 py-2 text-sm font-bold text-emerald-700"><i class="bi bi-check-circle me-1"></i>Confirmed</span></div>
+            <div class="my-7 border-t-2 border-dashed border-slate-200"></div>
+            <div class="grid gap-6 sm:grid-cols-3"><div><p class="text-xs font-semibold uppercase tracking-wider text-slate-400">From</p><p class="mt-1 font-bold text-slate-900">{{ $booking->sourceStation?->name ?? '—' }}</p></div><div><p class="text-xs font-semibold uppercase tracking-wider text-slate-400">To</p><p class="mt-1 font-bold text-slate-900">{{ $booking->destinationStation?->name ?? '—' }}</p></div><div><p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Travel date</p><p class="mt-1 font-bold text-slate-900">{{ $booking->travel_date?->format('d M Y') ?? '—' }}</p></div></div>
+            <div class="mt-7 grid gap-4 rounded-2xl bg-slate-50 p-5 sm:grid-cols-3"><div><p class="text-xs text-slate-500">Seats</p><p class="mt-1 font-bold text-slate-900">{{ $booking->seat_count }}</p></div><div><p class="text-xs text-slate-500">Class</p><p class="mt-1 font-bold capitalize text-slate-900">{{ str_replace('_', ' ', $booking->class_type) }}</p></div><div><p class="text-xs text-slate-500">Status</p><p class="mt-1 font-bold text-emerald-700">{{ ucfirst($booking->status) }}</p></div></div>
+        </div><div class="flex flex-wrap gap-3 border-t border-slate-100 bg-slate-50 px-6 py-5 sm:px-8"><a href="{{ route('dashboard') }}" style="background:#4f46e5;color:#fff" class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold hover:opacity-90"><i class="bi bi-house"></i>Back to dashboard</a><a href="{{ route('dashboard') }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-100"><i class="bi bi-search"></i>Search another train</a></div></div>
     </div></div>
 </x-app-layout>

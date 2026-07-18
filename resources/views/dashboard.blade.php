@@ -48,16 +48,15 @@
                             <label for="journey_date" class="block text-sm font-medium">Journey date</label>
                             <input type="date" name="journey_date" id="journey_date" min="{{ now()->toDateString() }}" required class="mt-1 block w-full rounded-lg border-gray-300">
                         </div>
-                        <button class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-3 font-semibold text-white shadow-sm hover:bg-indigo-500"><i class="bi bi-search"></i>Search trains</button>
+                        <button type="submit" style="background:#4f46e5;color:#fff" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 font-semibold shadow-sm hover:opacity-90"><i class="bi bi-search"></i>Search trains</button>
                     </form>
                 </div>
             </section>
 
-            <div class="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
+            <div class="grid gap-8">
                 <section id="booking" class="rounded-xl bg-white p-6 shadow-sm">
                     <div class="flex items-center justify-between">
                         <h3 class="text-lg font-bold text-gray-900">Upcoming bookings</h3>
-                        <a href="#booking" class="text-sm font-medium text-indigo-600">Book another trip</a>
                     </div>
                     <div class="mt-5 space-y-3">
                         @forelse($bookings as $booking)
@@ -76,19 +75,6 @@
                     </div>
                 </section>
 
-                <section class="rounded-xl bg-white p-6 shadow-sm">
-                    <h3 class="text-lg font-bold text-gray-900">Recent notifications</h3>
-                    <div class="mt-5 space-y-4">
-                        @forelse($notifications as $notification)
-                            <div class="border-l-4 {{ $notification->is_read ? 'border-gray-200' : 'border-indigo-500' }} pl-3">
-                                <p class="text-sm font-semibold text-gray-900">{{ $notification->title }}</p>
-                                <p class="mt-1 text-sm text-gray-500">{{ $notification->message }}</p>
-                            </div>
-                        @empty
-                            <p class="text-sm text-gray-500">You’ll see delay alerts here when a booked train is affected.</p>
-                        @endforelse
-                    </div>
-                </section>
             </div>
         </div>
     </div>

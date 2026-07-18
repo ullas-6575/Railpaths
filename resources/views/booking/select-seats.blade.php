@@ -1,111 +1,29 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Select Seats - {{ $train->name }}
-        </h2>
+        <div class="seat-header"><div><div class="eyebrow">Step 2 of 3</div><h2>Choose your seats</h2></div><span class="train-pill">{{ $train->name }}</span></div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <form action="{{ route('booking.book') }}" method="POST" id="bookingForm">
-                @csrf
-                <input type="hidden" name="train_id" value="{{ $train->id }}">
-                <input type="hidden" name="schedule_id" value="{{ $schedule->id }}">
-                <input type="hidden" name="source_id" value="{{ request('source') }}">
-                <input type="hidden" name="destination_id" value="{{ request('destination') }}">
+    <style>
+        .seat-page{background:#f1f5f9;min-height:calc(100vh - 80px);padding:32px 16px;color:#0f172a}.seat-wrap{max-width:1120px;margin:auto}.seat-header{display:flex;align-items:center;justify-content:space-between;gap:16px}.seat-header h2{margin:4px 0 0;font-size:28px;line-height:1.2;font-weight:800;color:#0f172a}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#4f46e5}.train-pill{border-radius:999px;background:#e0e7ff;color:#3730a3;font-size:14px;font-weight:700;padding:10px 16px}.seat-layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:24px;align-items:start}.seat-card,.passenger-card{background:#fff;border:1px solid #dbe3ef;border-radius:18px;box-shadow:0 8px 24px rgba(15,23,42,.07);padding:28px}.seat-card h3,.passenger-card h3{margin:4px 0 0;font-size:22px;color:#0f172a}.subtext{margin:7px 0 0;color:#475569;font-size:14px}.seat-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.front-mark{border:1px solid #cbd5e1;border-radius:12px;background:#f8fafc;color:#475569;padding:10px 13px;text-align:center;font-size:11px;font-weight:800;text-transform:uppercase}.front-mark i{display:block;font-size:20px;margin-bottom:3px}.seat-map{max-width:620px;margin:28px auto 0;border:1px solid #cbd5e1;border-radius:20px;background:#f8fafc;padding:24px}.seat-grid{display:grid;grid-template-columns:repeat(4,minmax(56px,1fr));gap:14px}.seat-option{display:block;cursor:pointer}.seat-option input{position:absolute;opacity:0;pointer-events:none}.seat-tile{height:62px;display:flex;align-items:center;justify-content:center;border:2px solid #cbd5e1;border-radius:13px;background:#fff;color:#334155;font-size:13px;font-weight:800;transition:transform .15s,box-shadow .15s,background .15s}.seat-option:hover .seat-tile{transform:translateY(-2px);box-shadow:0 5px 12px rgba(15,23,42,.12)}.seat-tile.seat-booked{background:#166534;border-color:#14532d;color:#fff;cursor:not-allowed}.seat-tile.seat-selected{background:#38bdf8;border-color:#0284c7;color:#082f49;box-shadow:0 0 0 4px #bae6fd}.seat-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:22px;margin-top:24px;color:#334155;font-size:13px;font-weight:600}.legend-item{display:flex;align-items:center;gap:8px}.legend-dot{width:15px;height:15px;border-radius:5px;border:2px solid #cbd5e1;background:#fff}.legend-dot.selected{background:#38bdf8;border-color:#0284c7}.legend-dot.booked{background:#166534;border-color:#14532d}.trip-card{position:sticky;top:24px;border-radius:18px;background:#0f172a;color:#fff;padding:26px;box-shadow:0 12px 28px rgba(15,23,42,.2)}.trip-label{color:#a5b4fc;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.trip-card h3{margin:8px 0 3px;color:#fff;font-size:22px}.trip-route{color:#cbd5e1;font-size:14px}.trip-divider{border:0;border-top:1px solid #334155;margin:24px 0}.trip-row{display:flex;justify-content:space-between;gap:12px;margin:14px 0;color:#cbd5e1;font-size:14px}.trip-row strong{color:#fff}.selection-status{border-radius:999px;background:#1e293b;color:#cbd5e1;padding:5px 9px;font-size:12px;font-weight:700}.confirm-btn{width:100%;margin-top:25px;border:0;border-radius:12px;background:#38bdf8;color:#082f49;padding:14px 16px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 7px 15px rgba(56,189,248,.25)}.confirm-btn:hover{background:#7dd3fc}.confirm-btn:disabled{background:#475569;color:#cbd5e1;cursor:not-allowed;box-shadow:none}.trip-note{margin:14px 0 0;color:#94a3b8;text-align:center;font-size:12px;line-height:1.5}.passenger-card{margin-top:24px}.passenger-card-head{border-bottom:1px solid #e2e8f0;padding-bottom:16px}.passenger-details{padding-top:20px}.empty-passengers{border-radius:12px;background:#f8fafc;color:#64748b;padding:24px;text-align:center;font-size:14px}.passenger-row{border:1px solid #dbe3ef;border-radius:14px;background:#f8fafc;padding:18px;margin-bottom:14px}.passenger-row-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.passenger-row h4{margin:0;color:#0f172a;font-size:16px}.seat-badge{border-radius:999px;background:#dbeafe;color:#1d4ed8;padding:6px 10px;font-size:12px;font-weight:800}.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field-label{display:block;color:#334155;font-size:13px;font-weight:700;margin-bottom:6px}.field-input{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:9px;background:#fff;color:#0f172a;padding:11px 12px;font-size:14px;outline:none}.field-input:focus{border-color:#0284c7;box-shadow:0 0 0 3px #bae6fd}@media(max-width:800px){.seat-layout{grid-template-columns:1fr}.trip-card{position:static}.seat-card,.passenger-card{padding:20px}}@media(max-width:480px){.seat-page{padding:20px 10px}.seat-header h2{font-size:22px}.seat-grid{gap:8px}.seat-tile{height:52px}.field-grid{grid-template-columns:1fr}}
+    </style>
 
-                {{-- Seat Selection --}}
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                    <div class="p-6">
-                        <h3 class="text-lg font-bold mb-4">Select Your Seats</h3>
-                        
-                        <div class="grid grid-cols-4 gap-4 max-w-2xl mx-auto">
-                            @foreach($seats as $seat)
-                                <label class="relative cursor-pointer">
-                                    <input type="checkbox" name="seat_ids[]" value="{{ $seat->id }}" 
-                                           class="peer sr-only" {{ $seat->is_available ? '' : 'disabled' }}>
-                                    <div class="w-16 h-16 rounded-lg border-2 flex items-center justify-center text-sm font-medium transition-all
-                                                {{ $seat->is_available 
-                                                    ? 'border-gray-300 hover:border-indigo-500 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600' 
-                                                    : 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' }}">
-                                        {{ $seat->seat_number }}
-                                    </div>
-                                </label>
-                            @endforeach
-                        </div>
-
-                        <div class="mt-6 flex items-center justify-center space-x-6 text-sm">
-                            <div class="flex items-center">
-                                <div class="w-4 h-4 border-2 border-gray-300 rounded mr-2"></div>
-                                <span>Available</span>
-                            </div>
-                            <div class="flex items-center">
-                                <div class="w-4 h-4 bg-indigo-600 rounded mr-2"></div>
-                                <span>Selected</span>
-                            </div>
-                            <div class="flex items-center">
-                                <div class="w-4 h-4 bg-gray-100 border border-gray-200 rounded mr-2"></div>
-                                <span>Booked</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Passenger Details --}}
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                    <div class="p-6">
-                        <h3 class="text-lg font-bold mb-4">Passenger Details</h3>
-                        <div id="passengerDetails" class="space-y-4">
-                            {{-- Dynamically populated based on seat selection --}}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-end">
-                    <button type="submit" id="bookBtn" disabled
-                            class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                        Confirm Booking
-                    </button>
-                </div>
-            </form>
+    <div class="seat-page"><div class="seat-wrap"><form action="{{ route('booking.book') }}" method="POST" id="bookingForm">
+        @csrf
+        <input type="hidden" name="train_id" value="{{ $train->id }}"><input type="hidden" name="schedule_id" value="{{ $schedule->id }}"><input type="hidden" name="source_id" value="{{ request('source') }}"><input type="hidden" name="destination_id" value="{{ request('destination') }}">
+        <div class="seat-layout">
+            <div>
+                <section class="seat-card"><div class="seat-card-head"><div><div class="eyebrow">Seat map</div><h3>Select your seats</h3><p class="subtext">Choose available seats for this journey.</p></div><div class="front-mark"><i class="bi bi-person-standing"></i>Front</div></div>
+                    <div class="seat-map"><div class="seat-grid">@foreach($seats as $seat)<label class="seat-option"><input type="checkbox" name="seat_ids[]" value="{{ $seat->id }}" {{ $seat->is_available ? '' : 'disabled' }}><span class="seat-tile {{ $seat->is_available ? 'seat-available' : 'seat-booked' }}">{{ $seat->seat_number }}</span></label>@endforeach</div></div>
+                    <div class="seat-legend"><span class="legend-item"><i class="legend-dot"></i>Available</span><span class="legend-item"><i class="legend-dot selected"></i>Selected</span><span class="legend-item"><i class="legend-dot booked"></i>Already booked</span></div>
+                </section>
+                <section class="passenger-card"><div class="passenger-card-head"><div class="eyebrow">Passenger details</div><h3>Who is travelling?</h3></div><div id="passengerDetails" class="passenger-details"><p class="empty-passengers">Select a seat to add passenger details.</p></div></section>
+            </div>
+            <aside class="trip-card"><div class="trip-label">Your trip</div><h3>{{ $train->name }}</h3><p class="trip-route">{{ request('source') }} <span aria-hidden="true">→</span> {{ request('destination') }}</p><hr class="trip-divider"><div class="trip-row"><span>Seats selected</span><strong id="seatCount">0</strong></div><div class="trip-row"><span>Status</span><span id="selectionStatus" class="selection-status">Waiting for selection</span></div><button type="submit" id="bookBtn" disabled class="confirm-btn"><i class="bi bi-lock"></i> Confirm booking</button><p class="trip-note">Your seats are held after booking confirmation.</p></aside>
         </div>
-    </div>
-
+    </form></div></div>
     <script>
-        const checkboxes = document.querySelectorAll('input[name="seat_ids[]"]:not(:disabled)');
-        const passengerDetails = document.getElementById('passengerDetails');
-        const bookBtn = document.getElementById('bookBtn');
-
-        checkboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', updatePassengerForms);
-        });
-
-        function updatePassengerForms() {
-            const selected = Array.from(checkboxes).filter(cb => cb.checked);
-            bookBtn.disabled = selected.length === 0;
-            
-            passengerDetails.innerHTML = '';
-            
-            selected.forEach((cb, index) => {
-                const seatNum = cb.nextElementSibling.textContent.trim();
-                passengerDetails.innerHTML += `
-                    <div class="border rounded-lg p-4 bg-gray-50">
-                        <h4 class="font-semibold mb-3">Passenger ${index + 1} - Seat ${seatNum}</h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Full Name</label>
-                                <input type="text" name="passenger_names[]" required 
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Age</label>
-                                <input type="number" name="passenger_ages[]" required min="1" max="120"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
+        const checkboxes=document.querySelectorAll('input[name="seat_ids[]"]:not(:disabled)'), passengerDetails=document.getElementById('passengerDetails'), bookBtn=document.getElementById('bookBtn'), seatCount=document.getElementById('seatCount'), selectionStatus=document.getElementById('selectionStatus');
+        checkboxes.forEach((checkbox)=>checkbox.addEventListener('change',updatePassengerForms));
+        function updatePassengerForms(){const selected=Array.from(checkboxes).filter((cb)=>cb.checked);selected.forEach((cb)=>cb.nextElementSibling.classList.toggle('seat-selected',cb.checked));bookBtn.disabled=selected.length===0;seatCount.textContent=selected.length;selectionStatus.textContent=selected.length?`${selected.length} seat${selected.length===1?'':'s'} selected`:'Waiting for selection';if(!selected.length){passengerDetails.innerHTML='<p class="empty-passengers">Select a seat to add passenger details.</p>';return}passengerDetails.innerHTML='';selected.forEach((cb,index)=>{const seatNum=cb.nextElementSibling.textContent.trim();passengerDetails.innerHTML+=`<div class="passenger-row"><div class="passenger-row-head"><h4>Passenger ${index+1}</h4><span class="seat-badge">Seat ${seatNum}</span></div><div class="field-grid"><div><label class="field-label">Full name</label><input type="text" name="passenger_names[]" required class="field-input"></div><div><label class="field-label">Age</label><input type="number" name="passenger_ages[]" required min="1" max="120" class="field-input"></div></div></div>`})}
     </script>
 </x-app-layout>

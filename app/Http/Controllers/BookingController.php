@@ -41,11 +41,31 @@ class BookingController extends Controller
             ->whereHas('routes.stations', fn ($query) => $query->whereKey($sourceId))
             ->whereHas('routes.stations', fn ($query) => $query->whereKey($destinationId))
             ->get()
-            ->map(function ($train) use ($sourceId, $destinationId) {
+            ->map(function ($train) use ($sourceId, $destinationId, $journeyDate) {
+                $route = $train->routes->first();
                 $stations = $train->routes->flatMap->stations->sortBy('pivot.stop_order')->values();
                 $sourceOrder = $stations->firstWhere('id', $sourceId)?->pivot->stop_order;
                 $destinationOrder = $stations->firstWhere('id', $destinationId)?->pivot->stop_order;
+                $bookedSeatIds = collect();
+
+                if ($route && $sourceOrder !== null && $destinationOrder !== null) {
+                    $bookedSeatIds = Booking::with(['seats', 'route.stations'])
+                        ->where('route_id', $route->id)
+                        ->whereDate('travel_date', $journeyDate)
+                        ->where('status', 'confirmed')
+                        ->get()
+                        ->filter(function ($booking) use ($route, $sourceOrder, $destinationOrder) {
+                            $bookingSource = optional($route->stations->firstWhere('id', $booking->source_station_id)?->pivot)->stop_order;
+                            $bookingDestination = optional($route->stations->firstWhere('id', $booking->dest_station_id)?->pivot)->stop_order;
+                            return $bookingSource < $destinationOrder && $bookingDestination > $sourceOrder;
+                        })
+                        ->flatMap(fn ($booking) => $booking->seats->pluck('id'))
+                        ->unique()
+                        ->values();
+                }
+
                 $train->setRelation('routes', $stations);
+                $train->available_seats = max(0, $train->total_seats - $bookedSeatIds->count());
                 return [$train, $sourceOrder, $destinationOrder];
             })
             ->filter(function ($item) {
@@ -85,15 +105,11 @@ class BookingController extends Controller
                     ->with(['route.stations']);
             }])
             ->get()
-            ->map(function ($seat) use ($request) {
+            ->map(function ($seat) use ($request, $route) {
                 // Check if seat is booked for this route segment
-                $isBooked = $seat->bookings->contains(function ($booking) use ($request) {
-                    $bookingSource = $seat->bookings->first();
-                    if (! $bookingSource) {
-                        return false;
-                    }
-                    $bookingSourceOrder = optional($bookingSource->route->stations->firstWhere('id', $bookingSource->source_station_id)?->pivot)->stop_order;
-                    $bookingDestinationOrder = optional($bookingSource->route->stations->firstWhere('id', $bookingSource->dest_station_id)?->pivot)->stop_order;
+                $isBooked = $seat->bookings->contains(function ($booking) use ($request, $route) {
+                    $bookingSourceOrder = optional($booking->route->stations->firstWhere('id', $booking->source_station_id)?->pivot)->stop_order;
+                    $bookingDestinationOrder = optional($booking->route->stations->firstWhere('id', $booking->dest_station_id)?->pivot)->stop_order;
                     $sourceOrder = optional($route->stations->firstWhere('id', $request->source)?->pivot)->stop_order;
                     $destinationOrder = optional($route->stations->firstWhere('id', $request->destination)?->pivot)->stop_order;
 
