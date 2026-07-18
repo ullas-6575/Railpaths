@@ -11,6 +11,8 @@ class Notification extends Model
 
     protected $fillable = ['user_id', 'title', 'message', 'type', 'is_read'];
 
+    protected $casts = ['is_read' => 'boolean'];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

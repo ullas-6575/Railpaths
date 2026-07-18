@@ -93,20 +93,21 @@ class StationMasterController extends Controller
 
         // Notify affected passengers if delayed
         if ($status === 'delayed' && $delayMinutes > 0) {
-            $this->notifyPassengersOfDelay($schedule->train_id, $delayMinutes, $schedule->station_id);
+            $this->notifyPassengersOfDelay($schedule->train_id, $schedule->date, $delayMinutes, $schedule->station_id);
         }
 
         return redirect()->back()->with('success', 'Train log updated successfully. Delay: ' . $delayMinutes . ' minutes');
     }
 
-    private function notifyPassengersOfDelay($trainId, $delayMinutes, $stationId)
+    private function notifyPassengersOfDelay($trainId, $travelDate, $delayMinutes, $stationId)
     {
         $routes = Route::with('stations')->where('train_id', $trainId)->get();
         $routeIds = $routes->pluck('id');
 
+        $train = \App\Models\Train::find($trainId);
         $bookings = \App\Models\Booking::with('user')
             ->whereIn('route_id', $routeIds)
-            ->where('travel_date', now()->toDateString())
+            ->whereDate('travel_date', $travelDate)
             ->where('status', 'confirmed')
             ->get();
 
@@ -125,7 +126,8 @@ class StationMasterController extends Controller
                 continue;
             }
 
-            $message = "Your train is delayed by {$delayMinutes} minutes at {$stationName}. Expected new arrival time will be updated shortly.";
+            $trainName = $train?->name ?? 'Your booked train';
+            $message = "{$trainName} is delayed by {$delayMinutes} minutes at {$stationName}. Please check the updated timing before travelling.";
 
             $alreadyNotified = Notification::where('user_id', $booking->user_id)
                 ->where('type', 'delay')
