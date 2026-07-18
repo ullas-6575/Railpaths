@@ -16,6 +16,9 @@
                     <x-nav-link :href="route($stationMaster ? 'station-master.dashboard' : 'dashboard')" :active="request()->routeIs($stationMaster ? 'station-master.dashboard' : 'dashboard')">
                         {{ $stationMaster ? __('Station Dashboard') : __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('weather.index')" :active="request()->routeIs('weather.*')">
+                        <i class="bi bi-cloud-sun me-1"></i>{{ __('Weather') }}
+                    </x-nav-link>
                 </div>
             </div>
 
