@@ -64,6 +64,9 @@
                     <a href="{{ route('admin.station-logs.index') }}" class="list-group-item list-group-item-action border-0 {{ request()->routeIs('admin.station-logs.*') ? 'active' : '' }}">
                         <i class="bi bi-journal-text me-2"></i> Station Logs
                     </a>
+                    <a href="{{ route('weather.index') }}" class="list-group-item list-group-item-action border-0 {{ request()->routeIs('weather.*') ? 'active' : '' }}">
+                        <i class="bi bi-cloud-sun me-2"></i> Weather
+                    </a>
                 </div>
             </div>
 

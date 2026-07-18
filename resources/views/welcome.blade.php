@@ -34,6 +34,9 @@
                         <li class="nav-item">
                             <a href="{{ route('login') }}" class="nav-link text-secondary fw-medium">Log in</a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('weather.index') }}" class="nav-link text-secondary fw-medium">Weather</a>
+                        </li>
                         @if (Route::has('register'))
                             <li class="nav-item">
                                 <a href="{{ route('register') }}" class="btn btn-rail-blue px-4 fw-medium">Sign Up</a>

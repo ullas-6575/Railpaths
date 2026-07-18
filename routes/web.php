@@ -13,6 +13,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\Admin\StationLogController;
 use App\Http\Controllers\PassengerDashboardController;
+use App\Http\Controllers\WeatherController;
 /*
 |--------------------------------------------------------------------------
 | PUBLIC ROUTES
@@ -26,6 +27,14 @@ Route::get('/', function () {
 Route::get('/station-master/pending', function () {
     return view('auth.station-master-pending');
 })->name('station-master.pending');
+
+// Public weather routes: available to guests and every authenticated role.
+Route::prefix('weather')->name('weather.')->group(function () {
+    Route::get('/', [WeatherController::class, 'index'])->name('index');
+    Route::get('/station/{station}', [WeatherController::class, 'getStationWeather'])->name('station');
+    Route::get('/search', [WeatherController::class, 'search'])->name('search');
+    Route::get('/widget', [WeatherController::class, 'widget'])->name('widget');
+});
 
 /*
 |--------------------------------------------------------------------------
