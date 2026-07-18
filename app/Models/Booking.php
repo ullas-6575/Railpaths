@@ -21,4 +21,6 @@ class Booking extends Model
     public function route() { return $this->belongsTo(Route::class); }
     public function passengers() { return $this->hasMany(Passenger::class); }
     public function seats() { return $this->belongsToMany(Seat::class, 'booking_seat'); }
+    public function sourceStation() { return $this->belongsTo(Station::class, 'source_station_id'); }
+    public function destinationStation() { return $this->belongsTo(Station::class, 'dest_station_id'); }
 }

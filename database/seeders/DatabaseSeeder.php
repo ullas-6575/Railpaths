@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
         \App\Models\User::updateOrCreate(
             ['email' => 'ullas@gmail.com'],
             [
-                'name' => 'Admin Ullas',
+                'name' => 'Ullas',
                 'password' => \Illuminate\Support\Facades\Hash::make('2207086'),
                 'role' => \App\Enums\UserRole::ADMIN,
                 'email_verified_at' => now(),

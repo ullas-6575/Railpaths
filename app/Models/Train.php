@@ -31,4 +31,9 @@ class Train extends Model
     {
         return $this->hasMany(Schedule::class);
     }
+
+    public function seats(): HasMany
+    {
+        return $this->hasMany(Seat::class);
+    }
 }

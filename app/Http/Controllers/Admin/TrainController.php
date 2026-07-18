@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Route;
+use App\Models\Seat;
 use App\Models\Station;
 use App\Models\Train;
 use App\Models\Schedule;
@@ -11,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Illuminate\Validation\ValidationException;
 
 class TrainController extends Controller
 {
@@ -22,7 +24,7 @@ class TrainController extends Controller
 
     public function create(): View
     {
-        $stations = Station::all();
+        $stations = Station::all()->sortBy(fn (Station $station) => $station->railOrder())->values();
         return view('admin.trains.create', compact('stations'));
     }
 
@@ -47,7 +49,15 @@ class TrainController extends Controller
                 'is_active' => true,
             ]);
 
-            $masterSequence = ['RP', 'RJ', 'KH', 'BA', 'MY', 'DA', 'SYL', 'CM', 'FE', 'NK', 'CTG'];
+            // Auto-generate seat records
+            for ($s = 1; $s <= $validated['total_seats']; $s++) {
+                Seat::create([
+                    'train_id' => $train->id,
+                    'seat_number' => 'S' . str_pad($s, 3, '0', STR_PAD_LEFT),
+                ]);
+            }
+
+            $masterSequence = Station::railSequence();
 
             $startStation = Station::find($validated['start_station_id']);
             $endStation = Station::find($validated['end_station_id']);
@@ -55,7 +65,13 @@ class TrainController extends Controller
             $startIndex = array_search($startStation->code, $masterSequence);
             $endIndex = array_search($endStation->code, $masterSequence);
 
-            $step = $startIndex < $endIndex ? 1 : -1;
+            if ($startIndex === false || $endIndex === false || $startIndex >= $endIndex) {
+                throw ValidationException::withMessages([
+                    'end_station_id' => 'A train must travel forward in the fixed Rangpur to Chattogram direction.',
+                ]);
+            }
+
+            $step = 1;
             $pathCodes = [];
             for ($i = $startIndex; $startIndex < $endIndex ? $i <= $endIndex : $i >= $endIndex; $i += $step) {
                 $pathCodes[] = $masterSequence[$i];
@@ -140,7 +156,7 @@ class TrainController extends Controller
     public function routeBuilder(Train $train): View
     {
         $train->load(['routes.stations']);
-        $stations = Station::orderBy('name')->get();
+        $stations = Station::all()->sortBy(fn (Station $station) => $station->railOrder())->values();
         return view('admin.trains.route-builder', compact('train', 'stations'));
     }
 

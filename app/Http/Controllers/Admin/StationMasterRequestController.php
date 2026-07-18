@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\DB;
 
 class StationMasterRequestController extends Controller
 {
@@ -30,21 +31,23 @@ class StationMasterRequestController extends Controller
             return back()->with('error', 'This request has already been processed.');
         }
 
-        $user = User::create([
-            'name'       => $stationMasterRequest->name,
-            'email'      => $stationMasterRequest->email,
-            'phone'      => $stationMasterRequest->phone,
-            'password'   => $stationMasterRequest->password,
-            'role'       => 'station_master',
-            'station_id' => $stationMasterRequest->station_id,
-        ]);
+        DB::transaction(function () use ($request, $stationMasterRequest) {
+            User::create([
+                'name'       => $stationMasterRequest->name,
+                'email'      => $stationMasterRequest->email,
+                'phone'      => $stationMasterRequest->phone,
+                'password'   => $stationMasterRequest->password,
+                'role'       => 'station_master',
+                'station_id' => $stationMasterRequest->station_id,
+            ]);
 
-        $stationMasterRequest->update([
-            'status'      => 'approved',
-            'approved_by' => auth()->id(),
-            'approved_at' => now(),
-            'admin_notes' => $request->input('admin_notes'),
-        ]);
+            $stationMasterRequest->update([
+                'status'      => 'approved',
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+                'admin_notes' => $request->input('admin_notes'),
+            ]);
+        });
 
         return back()->with('success', "Station Master '{$stationMasterRequest->name}' has been approved.");
     }

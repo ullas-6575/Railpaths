@@ -10,6 +10,7 @@ use App\Models\Seat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
 {
@@ -24,6 +25,14 @@ class BookingController extends Controller
         $sourceId = $request->source;
         $destinationId = $request->destination;
         $journeyDate = $request->journey_date;
+
+        $sourceStation = Station::findOrFail($sourceId);
+        $destStation = Station::findOrFail($destinationId);
+        if ($sourceStation->railOrder() >= $destStation->railOrder()) {
+            throw ValidationException::withMessages([
+                'destination' => 'Choose a destination later in the fixed Rangpur to Chattogram direction.',
+            ]);
+        }
 
         // Find trains that have routes covering both stations
         $trains = Train::with(['schedules' => function ($query) use ($journeyDate) {
@@ -46,9 +55,6 @@ class BookingController extends Controller
                 return $item[0];
             });
 
-        $sourceStation = Station::find($sourceId);
-        $destStation = Station::find($destinationId);
-
         return view('booking.search-results', compact('trains', 'sourceStation', 'destStation', 'journeyDate'));
     }
 
@@ -60,22 +66,38 @@ class BookingController extends Controller
             'date' => 'required|date',
         ]);
 
-        $schedule = Schedule::where('train_id', $train->id)
-            ->whereDate('date', $request->date)
-            ->firstOrFail();
+        $route = $train->routes()->with('stations')->firstOrFail();
+        $source = $route->stations->firstWhere('id', $request->source);
+        $destination = $route->stations->firstWhere('id', $request->destination);
+        abort_unless($source && $destination && $source->pivot->stop_order < $destination->pivot->stop_order, 422);
+
+        $schedule = Schedule::firstOrCreate(
+            ['train_id' => $train->id, 'route_id' => $route->id, 'station_id' => $source->id, 'date' => $request->date],
+            ['arrival_time' => $source->pivot->arrival_time, 'departure_time' => $source->pivot->departure_time]
+        );
 
         // Get all seats for this train
         $seats = Seat::where('train_id', $train->id)
-            ->with(['bookings' => function ($query) use ($request) {
-                $query->where('journey_date', $request->date)
-                      ->where('status', 'confirmed');
+            ->with(['bookings' => function ($query) use ($request, $route) {
+                $query->where('travel_date', $request->date)
+                    ->where('status', 'confirmed')
+                    ->where('route_id', $route->id)
+                    ->with(['route.stations']);
             }])
             ->get()
             ->map(function ($seat) use ($request) {
                 // Check if seat is booked for this route segment
                 $isBooked = $seat->bookings->contains(function ($booking) use ($request) {
-                    // Simplified: check if any booking overlaps with requested route
-                    return true; // Implement proper overlap logic based on your schema
+                    $bookingSource = $seat->bookings->first();
+                    if (! $bookingSource) {
+                        return false;
+                    }
+                    $bookingSourceOrder = optional($bookingSource->route->stations->firstWhere('id', $bookingSource->source_station_id)?->pivot)->stop_order;
+                    $bookingDestinationOrder = optional($bookingSource->route->stations->firstWhere('id', $bookingSource->dest_station_id)?->pivot)->stop_order;
+                    $sourceOrder = optional($route->stations->firstWhere('id', $request->source)?->pivot)->stop_order;
+                    $destinationOrder = optional($route->stations->firstWhere('id', $request->destination)?->pivot)->stop_order;
+
+                    return $bookingSourceOrder < $destinationOrder && $bookingDestinationOrder > $sourceOrder;
                 });
                 
                 $seat->is_available = !$isBooked;
@@ -98,15 +120,21 @@ class BookingController extends Controller
             'passenger_ages' => 'required|array',
         ]);
 
+        $schedule = Schedule::with('route.stations')->findOrFail($request->schedule_id);
+        abort_unless($schedule->train_id == $request->train_id, 422);
+        $sourceOrder = optional($schedule->route->stations->firstWhere('id', $request->source_id)?->pivot)->stop_order;
+        $destinationOrder = optional($schedule->route->stations->firstWhere('id', $request->destination_id)?->pivot)->stop_order;
+        abort_unless($sourceOrder && $destinationOrder && $sourceOrder < $destinationOrder, 422);
+
         DB::beginTransaction();
         
         try {
             $booking = Booking::create([
                 'user_id' => Auth::id(),
-                'route_id' => Schedule::findOrFail($request->schedule_id)->route_id,
+                'route_id' => $schedule->route_id,
                 'source_station_id' => $request->source_id,
                 'dest_station_id' => $request->destination_id,
-                'travel_date' => Schedule::findOrFail($request->schedule_id)->date,
+                'travel_date' => $schedule->date,
                 'class_type' => 'shovan',
                 'seat_count' => count($request->seat_ids),
                 'status' => 'confirmed',

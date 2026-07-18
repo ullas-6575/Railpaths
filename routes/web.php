@@ -12,6 +12,7 @@ use App\Http\Controllers\StationMasterController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\Admin\StationLogController;
+use App\Http\Controllers\PassengerDashboardController;
 /*
 |--------------------------------------------------------------------------
 | PUBLIC ROUTES
@@ -53,9 +54,9 @@ Route::get('/admin/login', [AuthenticatedSessionController::class, 'create'])
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [PassengerDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/notifications/{notification}/read', [PassengerDashboardController::class, 'markNotificationRead'])
+        ->name('notifications.read');
 });
 
 /*
@@ -66,6 +67,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'station_master'])->prefix('station-master')->group(function () {
     Route::get('/', [StationMasterController::class, 'dashboard'])
         ->name('station-master.dashboard');
+    Route::post('/log-train/{schedule}', [StationMasterController::class, 'logTrain'])
+        ->name('station-master.log-train');
 });
 
 /*
@@ -85,10 +88,10 @@ Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function ()
     Route::get('/station-master-requests', [StationMasterRequestController::class, 'index'])
         ->name('station-master-requests');
 
-    Route::post('/station-master-requests/{id}/approve', [StationMasterRequestController::class, 'approve'])
+    Route::patch('/station-master-requests/{stationMasterRequest}/approve', [StationMasterRequestController::class, 'approve'])
         ->name('station-master-requests.approve');
 
-    Route::post('/station-master-requests/{id}/reject', [StationMasterRequestController::class, 'reject'])
+    Route::patch('/station-master-requests/{stationMasterRequest}/reject', [StationMasterRequestController::class, 'reject'])
         ->name('station-master-requests.reject');
 
     // Train Management
@@ -114,7 +117,7 @@ Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function ()
     // Route Show (View)
     Route::get('/trains/{train}/route', [RouteController::class, 'show'])
         ->name('trains.routes.show');
-    Route::get('/trains/{train}/route', [RouteController::class, 'show'])
+    Route::get('/trains/{train}/route-alias', [RouteController::class, 'show'])
         ->name('trains.routes');  // ← ALIAS for backward compatibility
 
     // Route Edit (Drag-Drop Reordering)
@@ -130,6 +133,12 @@ Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function ()
         ->name('schedule.index');
     Route::get('/schedule/api/{train}', [ScheduleController::class, 'apiSchedule'])
         ->name('schedule.api');
+
+    // Station Logs
+    Route::get('/station-logs', [StationLogController::class, 'index'])
+        ->name('station-logs.index');
+    Route::get('/station-logs/statistics', [StationLogController::class, 'statistics'])
+        ->name('station-logs.statistics');
 });
 
 /*
@@ -143,18 +152,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware(['auth', 'role:station_master'])->prefix('station-master')->group(function () {
-    Route::get('/dashboard', [StationMasterController::class, 'dashboard'])->name('station-master.dashboard');
-    Route::post('/log-train/{schedule}', [StationMasterController::class, 'logTrain'])->name('station-master.log-train');
-});
-
 Route::middleware(['auth'])->group(function () {
     Route::post('/booking/search', [BookingController::class, 'search'])->name('booking.search');
     Route::get('/booking/seats/{train}', [BookingController::class, 'showSeats'])->name('booking.seats');
     Route::post('/booking/book', [BookingController::class, 'book'])->name('booking.book');
     Route::get('/booking/confirmation/{booking}', [BookingController::class, 'confirmation'])->name('booking.confirmation');
-});
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/station-logs', [StationLogController::class, 'index'])->name('station-logs.index');
-    Route::get('/station-logs/statistics', [StationLogController::class, 'statistics'])->name('station-logs.statistics');
 });

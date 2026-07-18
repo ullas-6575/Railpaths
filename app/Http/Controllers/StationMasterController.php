@@ -7,6 +7,9 @@ use App\Models\Schedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Models\Route;
+use App\Models\Booking;
+use App\Models\Notification;
 
 class StationMasterController extends Controller
 {
@@ -60,12 +63,10 @@ class StationMasterController extends Controller
         if ($request->actual_arrival) {
             $scheduled = Carbon::parse($schedule->arrival_time);
             $actual = Carbon::parse($request->actual_arrival);
-            $delayMinutes = $actual->diffInMinutes($scheduled, false);
-            
-            if ($delayMinutes > 5) {
+            $delayMinutes = max(0, $scheduled->diffInMinutes($actual, false));
+
+            if ($delayMinutes > 0) {
                 $status = 'delayed';
-            } elseif ($delayMinutes < 0) {
-                $delayMinutes = 0; // Early arrival
             }
         }
 
@@ -95,20 +96,47 @@ class StationMasterController extends Controller
 
     private function notifyPassengersOfDelay($trainId, $delayMinutes, $stationId)
     {
+        $routes = Route::with('stations')->where('train_id', $trainId)->get();
+        $routeIds = $routes->pluck('id');
+
         $bookings = \App\Models\Booking::with('user')
-            ->where('train_id', $trainId)
-            ->where('journey_date', now()->toDateString())
+            ->whereIn('route_id', $routeIds)
+            ->where('travel_date', now()->toDateString())
             ->where('status', 'confirmed')
             ->get();
 
+        $station = \App\Models\Station::find($stationId);
+        $stationName = $station ? $station->name : 'a station';
+
         foreach ($bookings as $booking) {
-            \App\Models\Notification::create([
+            $route = $routes->firstWhere('id', $booking->route_id);
+            $loggedOrder = optional($route?->stations->firstWhere('id', $stationId)?->pivot)->stop_order;
+            $sourceOrder = optional($route?->stations->firstWhere('id', $booking->source_station_id)?->pivot)->stop_order;
+            $destinationOrder = optional($route?->stations->firstWhere('id', $booking->dest_station_id)?->pivot)->stop_order;
+
+            // A passenger is affected only while the train is on their booked segment.
+            if (! $loggedOrder || ! $sourceOrder || ! $destinationOrder ||
+                $loggedOrder < $sourceOrder || $loggedOrder > $destinationOrder) {
+                continue;
+            }
+
+            $message = "Your train is delayed by {$delayMinutes} minutes at {$stationName}. Expected new arrival time will be updated shortly.";
+
+            $alreadyNotified = Notification::where('user_id', $booking->user_id)
+                ->where('type', 'delay')
+                ->where('message', $message)
+                ->whereDate('created_at', now()->toDateString())
+                ->exists();
+
+            if (! $alreadyNotified) {
+                Notification::create([
                 'user_id' => $booking->user_id,
                 'title' => 'Train Delay Alert',
-                'message' => "Your train {$booking->train->name} is delayed by {$delayMinutes} minutes at station. Expected new arrival time will be updated shortly.",
+                'message' => $message,
                 'type' => 'delay',
                 'is_read' => false,
-            ]);
+                ]);
+            }
         }
     }
 }

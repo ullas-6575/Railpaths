@@ -8,12 +8,13 @@ use App\Models\Station;
 use App\Models\Train;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class RouteController extends Controller
 {
     public function create(Train $train)
     {
-        $stations = Station::orderBy('name')->get();
+        $stations = Station::all()->sortBy(fn (Station $station) => $station->railOrder())->values();
 
         return view('admin.trains.route-builder', compact('train', 'stations'));
     }
@@ -32,6 +33,8 @@ class RouteController extends Controller
             'stations.*.distance_from_source' => 'nullable|numeric|min:0',
             'stations.*.distance' => 'nullable|numeric|min:0',
         ]);
+
+        $this->ensureForwardStationOrder($validated['stations']);
 
         DB::transaction(function () use ($validated, $train) {
             $route = $train->routes()->create([
@@ -95,6 +98,8 @@ class RouteController extends Controller
             'stations.*.distance_from_source' => 'nullable|numeric|min:0',
         ]);
 
+        $this->ensureForwardStationOrder($validated['stations']);
+
         $route = $train->routes()->firstOrFail();
         DB::transaction(function () use ($validated, $route) {
             $stations = [];
@@ -111,6 +116,19 @@ class RouteController extends Controller
 
         return redirect()->route('admin.trains.routes', $train)
             ->with('success', 'Route updated successfully.');
+    }
+
+    private function ensureForwardStationOrder(array $stations): void
+    {
+        $stationIds = collect($stations)->map(fn ($station) => $station['id'] ?? $station['station_id']);
+        $stationOrders = Station::whereIn('id', $stationIds)->get()->keyBy('id');
+        $orders = $stationIds->map(fn ($stationId) => $stationOrders->get($stationId)?->railOrder())->all();
+
+        if (in_array(null, $orders, true) || count($orders) !== count(array_unique($orders)) || $orders !== collect($orders)->sort()->values()->all()) {
+            throw ValidationException::withMessages([
+                'stations' => 'Stations must follow the fixed Rangpur to Chattogram order.',
+            ]);
+        }
     }
 
     public function destroy(Route $route)

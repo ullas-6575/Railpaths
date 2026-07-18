@@ -27,20 +27,20 @@
                                         
                                         <div class="mt-4 flex items-center space-x-8">
                                             <div class="text-center">
-                                                <p class="text-2xl font-bold text-gray-900">{{ $sourceRoute->arrival_time }}</p>
+                                                <p class="text-2xl font-bold text-gray-900">{{ $sourceRoute->pivot->departure_time ?? $sourceRoute->pivot->arrival_time }}</p>
                                                 <p class="text-sm text-gray-500">{{ $sourceStation->name }}</p>
                                             </div>
                                             
                                             <div class="flex-1 flex items-center justify-center">
                                                 <div class="border-t-2 border-gray-300 w-full relative">
                                                     <span class="absolute top-3 left-1/2 transform -translate-x-1/2 text-xs text-gray-500 whitespace-nowrap">
-                                                        {{ $sourceRoute->distance_from_source - $destRoute->distance_from_source }} km
+                                                        {{ abs($destRoute->pivot->distance_from_source - $sourceRoute->pivot->distance_from_source) }} km
                                                     </span>
                                                 </div>
                                             </div>
                                             
                                             <div class="text-center">
-                                                <p class="text-2xl font-bold text-gray-900">{{ $destRoute->arrival_time }}</p>
+                                                <p class="text-2xl font-bold text-gray-900">{{ $destRoute->pivot->arrival_time ?? $destRoute->pivot->departure_time }}</p>
                                                 <p class="text-sm text-gray-500">{{ $destStation->name }}</p>
                                             </div>
                                         </div>

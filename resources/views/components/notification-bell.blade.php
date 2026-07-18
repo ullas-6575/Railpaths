@@ -24,6 +24,12 @@ $notifications = Auth::user()->notifications()->latest()->take(5)->get();
                 <p class="text-sm font-medium text-gray-900">{{ $notification->title }}</p>
                 <p class="text-xs text-gray-500 mt-1">{{ $notification->message }}</p>
                 <p class="text-xs text-gray-400 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
+                @if(! $notification->is_read)
+                    <form method="POST" action="{{ route('notifications.read', $notification) }}" class="mt-2">
+                        @csrf
+                        <button class="text-xs font-medium text-indigo-600 hover:text-indigo-800">Mark as read</button>
+                    </form>
+                @endif
             </div>
         @empty
             <div class="px-4 py-3 text-sm text-gray-500">No notifications</div>

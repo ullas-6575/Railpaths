@@ -15,25 +15,29 @@ class ScheduleController extends Controller
         $selectedTrainId = $request->get('train_id');
         $selectedTrain = null;
         $calendarData = null;
+        $routeStations = collect();
 
         if ($selectedTrainId) {
             $selectedTrain = Train::findOrFail($selectedTrainId);
-            $selectedTrain->load('routes');
-            $selectedTrain->setRelation('routes', $selectedTrain->routes->sortBy('pivot.stop_order')->values());
+            $route = $selectedTrain->routes()->first();
+            if ($route) {
+                $routeStations = $route->stations;
+            }
 
             $month = $request->get('month', now()->format('Y-m'));
-            $calendarData = $this->buildCalendar($month, $selectedTrain);
+            $calendarData = $this->buildCalendar($month, $routeStations);
         }
 
         return view('admin.trains.schedule', compact(
             'trains',
             'selectedTrain',
             'selectedTrainId',
-            'calendarData'
+            'calendarData',
+            'routeStations'
         ));
     }
 
-    private function buildCalendar(string $month, Train $train): array
+    private function buildCalendar(string $month, $routeStations): array
     {
         $startOfMonth = Carbon::parse($month . '-01')->startOfMonth();
         $endOfMonth = $startOfMonth->copy()->endOfMonth();
@@ -42,14 +46,12 @@ class ScheduleController extends Controller
 
         $days = [];
         $current = $startOfCalendar->copy();
-        $routes = $train->routes;
 
         while ($current <= $endOfCalendar) {
             $dayEvents = [];
-            $dateStr = $current->format('Y-m-d');
 
-            if ($current->month === $startOfMonth->month && $routes->isNotEmpty()) {
-                foreach ($routes as $index => $station) {
+            if ($current->month === $startOfMonth->month && $routeStations->isNotEmpty()) {
+                foreach ($routeStations as $index => $station) {
                     $dayEvents[] = [
                         'station_id' => $station->id,
                         'station_name' => $station->name,
@@ -59,13 +61,13 @@ class ScheduleController extends Controller
                         'stop_order' => $station->pivot->stop_order,
                         'distance_from_source' => $station->pivot->distance_from_source,
                         'is_source' => $index === 0,
-                        'is_destination' => $index === $routes->count() - 1,
+                        'is_destination' => $index === $routeStations->count() - 1,
                     ];
                 }
             }
 
             $days[] = [
-                'date' => $dateStr,
+                'date' => $current->format('Y-m-d'),
                 'day' => $current->day,
                 'is_current_month' => $current->month === $startOfMonth->month,
                 'is_today' => $current->isToday(),
@@ -86,11 +88,11 @@ class ScheduleController extends Controller
     public function apiSchedule(Request $request, Train $train)
     {
         $date = $request->get('date', now()->format('Y-m-d'));
-        $train->load('routes');
-        $train->setRelation('routes', $train->routes->sortBy('pivot.stop_order')->values());
+        $route = $train->routes()->first();
+        $stations = $route ? $route->stations : collect();
 
         $events = [];
-        foreach ($train->routes as $index => $station) {
+        foreach ($stations as $index => $station) {
             $events[] = [
                 'station_id' => $station->id,
                 'station_name' => $station->name,
@@ -100,7 +102,7 @@ class ScheduleController extends Controller
                 'stop_order' => $station->pivot->stop_order,
                 'distance_from_source' => $station->pivot->distance_from_source,
                 'is_source' => $index === 0,
-                'is_destination' => $index === $train->routes->count() - 1,
+                'is_destination' => $index === $stations->count() - 1,
             ];
         }
 

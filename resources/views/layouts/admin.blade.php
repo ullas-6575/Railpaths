@@ -19,6 +19,9 @@
         .btn-outline-purple { color: var(--rail-purple); border-color: var(--rail-purple); }
         .btn-outline-purple:hover { background-color: var(--rail-purple); color: white; }
         .nav-link.active { background-color: rgba(124, 58, 237, 0.1); color: var(--rail-purple) !important; border-radius: 0.5rem; }
+        .letter-spacing-1 { letter-spacing: .08em; }
+        .sidebar-card { position: sticky; top: 5.5rem; }
+        .table > :not(caption) > * > * { padding-top: .9rem; padding-bottom: .9rem; }
     </style>
     @stack('styles')
 </head>
@@ -45,7 +48,7 @@
         <div class="row">
             <!-- Sidebar -->
             <div class="col-lg-2 col-md-3 mb-4">
-                <div class="list-group list-group-flush">
+                <div class="list-group list-group-flush sidebar-card">
                     <a href="{{ route('admin.dashboard') }}" class="list-group-item list-group-item-action border-0 {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                         <i class="bi bi-speedometer2 me-2"></i> Dashboard
                     </a>
@@ -58,6 +61,9 @@
                     <a href="{{ route('admin.schedule.index') }}" class="list-group-item list-group-item-action border-0 {{ request()->routeIs('admin.schedule.*') ? 'active' : '' }}">
                         <i class="bi bi-calendar-week me-2"></i> Schedule
                     </a>
+                    <a href="{{ route('admin.station-logs.index') }}" class="list-group-item list-group-item-action border-0 {{ request()->routeIs('admin.station-logs.*') ? 'active' : '' }}">
+                        <i class="bi bi-journal-text me-2"></i> Station Logs
+                    </a>
                 </div>
             </div>
 
@@ -66,6 +72,12 @@
                 @if(session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+                @if(session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle me-1"></i>{{ session('error') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif

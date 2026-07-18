@@ -14,7 +14,7 @@ class RedirectIfNotAdmin
             return redirect()->route('admin.login');
         }
 
-        if (auth()->user()->role !== 'admin') {
+        if (!auth()->user()->isAdmin()) {
             abort(404);
         }
 
